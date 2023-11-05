@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poisson Random Number Generator</title>
+    <title>Simulator</title>
 <style>
 body {
     font-family: Arial, sans-serif;
@@ -86,41 +86,37 @@ th {
 </head>
 <body>
     <div class="container">
-        <h1>Poisson Random Number Generator</h1>
+        <h1>Simulator</h1>
         <div class="input-container">
             <label for="mean">Mean Value:</label>
             <input type="number" id="mean" min="0" step="0.01" required>
         </div>
         <div class="input-container">
-            <label for="quantity">Quantity:</label>
-            <input type="number" id="quantity" min="1" required>
-        </div>
-        <div class="input-container">
             <label for="serviceRate">Service Rate:</label>
             <input type="number" id="serviceRate" min="0" step="0.01" required>
         </div>
-        <button id="generateBtn">Generate Random Numbers</button>
+        <button id="generateBtn">Generate Simulation</button>
         <div id="result"></div>
         <div id="table-container"></div>
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const generateBtn = document.getElementById("generateBtn");
-            generateBtn.addEventListener("click", generateRandomNumbers);
+            generateBtn.addEventListener("click", generateSimulation);
 
-            function generateRandomNumbers() {
+            function generateSimulation() {
                 const mean = parseFloat(document.getElementById("mean").value);
-                const quantity = parseInt(document.getElementById("quantity").value);
                 const serviceRate = parseFloat(document.getElementById("serviceRate").value);
                 let resultText = "";
                 let tableHtml = "<table><tr><th>Random Number</th><th>Cumulative Frequency</th><th>CP Lookup</th><th>Avg Time Between Arrival</th><th>Interarrival Time</th><th>Arrival Time</th><th>Service Time</th></tr>";
 
-                if (!isNaN(mean) && !isNaN(quantity) && !isNaN(serviceRate) && mean >= 0 && quantity >= 1 && serviceRate >= 0) {
-                    let cumulativeFrequency = 0;
+                if (!isNaN(mean) && !isNaN(serviceRate) && mean > 0 && serviceRate > 0) {
+                    let cumulativeFrequency = 0.0;
                     let totalInterarrivalTime = 0;
+                    let x = 0;
 
-                    resultText = "Poisson-distributed random numbers for x from 0 to " + (quantity - 1) + ":<br>";
-                    for (let x = 0; x < quantity; x++) {
+                    while (cumulativeFrequency.toFixed(5) <= 0.99999) {
+                        // Generate arrival time using poisson distribution
                         const poissonValue = poissonDistribution(mean, x);
                         cumulativeFrequency += poissonValue;
                         const cpLookup = cumulativeFrequency.toFixed(4);
@@ -131,22 +127,23 @@ th {
                         const arrivalTime = (x === 0) ? interarrivalTime : (parseFloat(tableHtml.split("</td><td>")[5].split("</td></tr>")[0]) + parseFloat(interarrivalTime)).toFixed(4);
 
                         // Generate service time using exponential distribution
-                        const serviceTime = (serviceRate > 0) ? (-serviceRate * Math.log(Math.random())).toFixed(4) : 0;
+                        const serviceTime = exponentialDistribution(serviceRate);
 
-                        resultText += `P(X = ${x}) = ${poissonValue.toFixed(4)}<br>`;
-
-                        tableHtml += `<tr><td>${x}</td><td>${cumulativeFrequency.toFixed(4)}</td><td>${cpLookup}</td><td>${avgTimeBetweenArrival.toFixed(4)}</td><td>${interarrivalTime}</td><td>${arrivalTime}</td><td>${serviceTime}</td></tr>`;
+                        tableHtml += `<tr><td>${x}</td><td>${cumulativeFrequency.toFixed(4)}</td><td>${cpLookup}</td><td>${avgTimeBetweenArrival}</td><td>${interarrivalTime}</td><td>${arrivalTime}</td><td>${serviceTime}</td></tr>`;
+                        x++;
+                        if(cumulativeFrequency.toFixed(4) == 1.0000)
+                            break;
                     }
                     tableHtml += "</table>";
                 } else {
-                    resultText = "Please enter valid input values (mean >= 0, quantity >= 1, serviceRate >= 0).";
+                    resultText = "Please enter valid input values (mean >= 0, serviceRate >= 0).";
                 }
 
                 document.getElementById("result").innerHTML = resultText;
                 document.getElementById("table-container").innerHTML = tableHtml;
             }
 
-            // Function to calculate Poisson distribution
+            // Function to calculate arrival using Poisson distribution
             function poissonDistribution(mean, x) {
                 const ePowerMinusMean = Math.exp(-mean);
                 const xPowerX = Math.pow(mean, x);
@@ -163,6 +160,16 @@ th {
                     result *= i;
                 }
                 return result;
+            }
+
+            // Function to calculate service using Exponential distribution
+            function exponentialDistribution(mue){
+                var serviceValue = (-mue * Math.log(Math.random())).toFixed(4)
+                if(serviceValue < 0.50)
+                    exponentialDistribution(mue)
+                else
+                    serviceValue = Math.round(serviceValue,0);
+                return serviceValue;
             }
         });
     </script>
