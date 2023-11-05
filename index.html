@@ -4,85 +4,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulator</title>
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-.container {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    text-align: center;
-}
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
 
-h1 {
-    margin-bottom: 20px;
-}
+        h1 {
+            margin-bottom: 20px;
+        }
 
-.input-container {
-    margin-bottom: 10px;
-}
+        .input-container {
+            margin-bottom: 10px;
+        }
 
-label {
-    font-weight: bold;
-}
+        label {
+            font-weight: bold;
+        }
 
-input[type="number"] {
-    width: 100px;
-    padding: 5px;
-}
+        input[type="number"] {
+            width: 100px;
+            padding: 5px;
+        }
 
-button {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-}
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
 
-button:hover {
-    background-color: #0056b3;
-}
+        button:hover {
+            background-color: #0056b3;
+        }
 
-#result {
-    margin-top: 20px;
-    font-weight: bold;
-}
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
 
-#table-container {
-    margin-top: 20px;
-}
+        #table-container {
+            margin-top: 20px;
+        }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
 
-table, th, td {
-    border: 1px solid #ddd;
-}
+        table, th, td {
+            border: 1px solid #ddd;
+        }
 
-th, td {
-    padding: 8px;
-    text-align: center;
-}
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
 
-th {
-    background-color: #007bff;
-    color: white;
-}
-</style>
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -127,9 +127,17 @@ th {
                         const arrivalTime = (x === 0) ? interarrivalTime : (parseFloat(tableHtml.split("</td><td>")[5].split("</td></tr>")[0]) + parseFloat(interarrivalTime)).toFixed(4);
 
                         // Generate service time using exponential distribution
-                        const serviceTime = exponentialDistribution(serviceRate);
+                        let serviceTime = exponentialDistribution(serviceRate);
 
-                        tableHtml += `<tr><td>${x}</td><td>${cumulativeFrequency.toFixed(4)}</td><td>${cpLookup}</td><td>${avgTimeBetweenArrival}</td><td>${interarrivalTime}</td><td>${arrivalTime}</td><td>${serviceTime}</td></tr>`;
+                        // Only show service time if it's greater than 0.5
+                        if (serviceTime > 0.5) {
+                            // Round off service time to the nearest integer
+                            serviceTime = Math.round(serviceTime);
+
+                            // Existing code for table row generation
+                            tableHtml += `<tr><td>${x}</td><td>${cumulativeFrequency.toFixed(4)}</td><td>${cpLookup}</td><td>${avgTimeBetweenArrival}</td><td>${interarrivalTime}</td><td>${arrivalTime}</td><td>${serviceTime}</td></tr>`;
+                        }
+
                         x++;
                         if(cumulativeFrequency.toFixed(4) == 1.0000)
                             break;
@@ -164,12 +172,15 @@ th {
 
             // Function to calculate service using Exponential distribution
             function exponentialDistribution(mue){
-                var serviceValue = (-mue * Math.log(Math.random())).toFixed(4)
-                if(serviceValue < 0.50)
-                    exponentialDistribution(mue)
-                else
-                    serviceValue = Math.round(serviceValue,0);
-                return serviceValue;
+                let serviceValue = (-mue * Math.log(Math.random())).toFixed(4);
+
+                // If service time is less than or equal to 0.5, generate a new one until it's greater than 0.5
+                while (serviceValue <= 0.5) {
+                    serviceValue = (-mue * Math.log(Math.random())).toFixed(4);
+                }
+
+                // Round off service time to the nearest integer before returning
+                return Math.round(serviceValue);
             }
         });
     </script>
