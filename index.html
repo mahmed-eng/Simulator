@@ -105,7 +105,7 @@
                 const mean = parseFloat(document.getElementById("mean").value);
                 const serviceRate = parseFloat(document.getElementById("serviceRate").value);
                 let resultText = "";
-                let tableHtml = "<table><tr><th>S.No.</th><th>Cumulative Frequency</th><th>CP Lookup</th><th>Avg Time Between Arrival</th><th>Interarrival Time</th><th>Arrival Time</th><th>Service Time</th><th>Start Time</th><th>End Time</th><th>Wait Time</th></tr>";
+                let tableHtml = "<table><tr><th>S.No.</th><th>Cumulative Frequency</th><th>CP Lookup</th><th>Avg Time Between Arrival</th><th>Interarrival Time</th><th>Arrival Time</th><th>Service Time</th><th>Start Time</th><th>End Time</th><th>Wait Time</th><th>Turn Around Time</th></tr>";
 
                 let Lookupvalues = {}; // Object to store Avg Time Between Arrival with corresponding CP Lookup
 
@@ -139,7 +139,9 @@
 
                         if (serviceTime > 0.5) {
                             serviceTime = Math.round(serviceTime);
-                            tableHtml += `<tr><td>${x + 1}</td><td>${cumulativeFrequency.toFixed(4)}</td><td>${cpLookup}</td><td>${avgTimeBetweenArrival}</td><td>${interarrivalTime}</td><td>${arrivalTime}</td><td>${serviceTime}</td><td>${arrivalTime}</td><td>${arrivalTime + serviceTime}</td><td>${arrivalTime - interarrivalPrevious}</td></tr>`;
+                            let endTime = arrivalTime + serviceTime;
+                            let turnAroundTime = endTime - arrivalTime;
+                            tableHtml += `<tr><td>${x + 1}</td><td>${cumulativeFrequency.toFixed(4)}</td><td>${cpLookup}</td><td>${avgTimeBetweenArrival}</td><td>${interarrivalTime}</td><td>${arrivalTime}</td><td>${serviceTime}</td><td>${arrivalTime}</td><td>${endTime}</td><td>${arrivalTime - interarrivalPrevious}</td><td>${turnAroundTime}</td></tr>`;
                         }
 
                         x++;
