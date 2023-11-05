@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poisson Random Number Generator</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+.input-container {
+    margin-bottom: 10px;
+}
+
+label {
+    font-weight: bold;
+}
+
+input[type="number"] {
+    width: 100px;
+    padding: 5px;
+}
+
+button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#result {
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+#table-container {
+    margin-top: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background-color: #007bff;
+    color: white;
+}
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1>Poisson Random Number Generator</h1>
+        <div class="input-container">
+            <label for="mean">Mean Value:</label>
+            <input type="number" id="mean" min="0" step="0.01" required>
+        </div>
+        <div class="input-container">
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" min="1" required>
+        </div>
+        <div class="input-container">
+            <label for="serviceRate">Service Rate:</label>
+            <input type="number" id="serviceRate" min="0" step="0.01" required>
+        </div>
+        <button id="generateBtn">Generate Random Numbers</button>
+        <div id="result"></div>
+        <div id="table-container"></div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const generateBtn = document.getElementById("generateBtn");
+            generateBtn.addEventListener("click", generateRandomNumbers);
+
+            function generateRandomNumbers() {
+                const mean = parseFloat(document.getElementById("mean").value);
+                const quantity = parseInt(document.getElementById("quantity").value);
+                const serviceRate = parseFloat(document.getElementById("serviceRate").value);
+                let resultText = "";
+                let tableHtml = "<table><tr><th>Random Number</th><th>Cumulative Frequency</th><th>CP Lookup</th><th>Avg Time Between Arrival</th><th>Interarrival Time</th><th>Arrival Time</th><th>Service Time</th></tr>";
+
+                if (!isNaN(mean) && !isNaN(quantity) && !isNaN(serviceRate) && mean >= 0 && quantity >= 1 && serviceRate >= 0) {
+                    let cumulativeFrequency = 0;
+                    let totalInterarrivalTime = 0;
+
+                    resultText = "Poisson-distributed random numbers for x from 0 to " + (quantity - 1) + ":<br>";
+                    for (let x = 0; x < quantity; x++) {
+                        const poissonValue = poissonDistribution(mean, x);
+                        cumulativeFrequency += poissonValue;
+                        const cpLookup = cumulativeFrequency.toFixed(4);
+                        
+                        const avgTimeBetweenArrival = x;
+                        totalInterarrivalTime += avgTimeBetweenArrival;
+                        const interarrivalTime = totalInterarrivalTime.toFixed(4);
+                        const arrivalTime = (x === 0) ? interarrivalTime : (parseFloat(tableHtml.split("</td><td>")[5].split("</td></tr>")[0]) + parseFloat(interarrivalTime)).toFixed(4);
+
+                        // Generate service time using exponential distribution
+                        const serviceTime = (serviceRate > 0) ? (-serviceRate * Math.log(Math.random())).toFixed(4) : 0;
+
+                        resultText += `P(X = ${x}) = ${poissonValue.toFixed(4)}<br>`;
+
+                        tableHtml += `<tr><td>${x}</td><td>${cumulativeFrequency.toFixed(4)}</td><td>${cpLookup}</td><td>${avgTimeBetweenArrival.toFixed(4)}</td><td>${interarrivalTime}</td><td>${arrivalTime}</td><td>${serviceTime}</td></tr>`;
+                    }
+                    tableHtml += "</table>";
+                } else {
+                    resultText = "Please enter valid input values (mean >= 0, quantity >= 1, serviceRate >= 0).";
+                }
+
+                document.getElementById("result").innerHTML = resultText;
+                document.getElementById("table-container").innerHTML = tableHtml;
+            }
+
+            // Function to calculate Poisson distribution
+            function poissonDistribution(mean, x) {
+                const ePowerMinusMean = Math.exp(-mean);
+                const xPowerX = Math.pow(mean, x);
+                const factorialX = factorial(x);
+
+                return (ePowerMinusMean * xPowerX) / factorialX;
+            }
+
+            // Function to calculate factorial
+            function factorial(n) {
+                if (n === 0) return 1;
+                let result = 1;
+                for (let i = 1; i <= n; i++) {
+                    result *= i;
+                }
+                return result;
+            }
+        });
+    </script>
+</body>
+</html>
