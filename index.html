@@ -108,18 +108,21 @@
                 const mean = parseFloat(document.getElementById("mean").value);
                 const serviceRate = parseFloat(document.getElementById("serviceRate").value);
                 let resultText = "";
-                let tableHtml = "<table><tr><th>Random Number</th><th>Cumulative Frequency</th><th>CP Lookup</th><th>Avg Time Between Arrival</th><th>Interarrival Time</th><th>Arrival Time</th><th>Service Time</th></tr>";
+                let tableHtml = "<table><tr><th>S.No.</th><th>Cumulative Frequency</th><th>CP Lookup</th><th>Avg Time Between Arrival</th><th>Interarrival Time</th><th>Arrival Time</th><th>Service Time</th></tr>";
 
                 if (!isNaN(mean) && !isNaN(serviceRate) && mean > 0 && serviceRate > 0) {
                     let cumulativeFrequency = 0.0;
                     let totalInterarrivalTime = 0;
                     let x = 0;
+                    let cpLookupPrevious = 0;
 
                     while (cumulativeFrequency.toFixed(5) <= 0.99999) {
                         // Generate arrival time using poisson distribution
                         const poissonValue = poissonDistribution(mean, x);
+                        
                         cumulativeFrequency += poissonValue;
-                        const cpLookup = cumulativeFrequency.toFixed(4);
+                        const cpLookup = (x === 0) ? 0 : cpLookupPrevious;
+                        cpLookupPrevious = cumulativeFrequency.toFixed(4);
                         
                         const avgTimeBetweenArrival = x;
                         totalInterarrivalTime += avgTimeBetweenArrival;
@@ -133,11 +136,10 @@
                         if (serviceTime > 0.5) {
                             // Round off service time to the nearest integer
                             serviceTime = Math.round(serviceTime);
-
                             // Existing code for table row generation
-                            tableHtml += `<tr><td>${x}</td><td>${cumulativeFrequency.toFixed(4)}</td><td>${cpLookup}</td><td>${avgTimeBetweenArrival}</td><td>${interarrivalTime}</td><td>${arrivalTime}</td><td>${serviceTime}</td></tr>`;
+                            tableHtml += `<tr><td>${x + 1}</td><td>${cumulativeFrequency.toFixed(4)}</td><td>${cpLookup}</td><td>${avgTimeBetweenArrival}</td><td>${interarrivalTime}</td><td>${arrivalTime}</td><td>${serviceTime}</td></tr>`;
                         }
-
+                        
                         x++;
                         if(cumulativeFrequency.toFixed(4) == 1.0000)
                             break;
