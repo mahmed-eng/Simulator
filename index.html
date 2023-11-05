@@ -118,7 +118,6 @@
                     let x = 0;
                     let cpLookupPrevious = 0;
                     
-
                     while (cumulativeFrequency.toFixed(5) <= 0.99999) {
                         // Generate arrival time using poisson distribution
                         const poissonValue = poissonDistribution(mean, x);
@@ -127,13 +126,17 @@
                         const cpLookup = (x === 0) ? 0 : cpLookupPrevious;
                         cpLookupPrevious = cumulativeFrequency.toFixed(4);
                         
-
                         const avgTimeBetweenArrival = x;
                         Lookupvalues[cpLookup] = avgTimeBetweenArrival;
 
                         totalInterarrivalTime += avgTimeBetweenArrival;
-                        const interarrivalTime = totalInterarrivalTime.toFixed(4);
-                        const arrivalTime = (x === 0) ? interarrivalTime : (parseFloat(tableHtml.split("</td><td>")[5].split("</td></tr>")[0]) + parseFloat(interarrivalTime)).toFixed(4);
+                        let interarrivalTime = Math.random();
+
+                        // Find the range value in Lookupvalues
+                        const rangeValue = findRange(Lookupvalues, interarrivalTime);
+                        interarrivalTime = Lookupvalues[rangeValue];
+
+                        const arrivalTime = (x === 0) ? 0 : (parseFloat(tableHtml.split("</td><td>")[5].split("</td></tr>")[0]) + parseFloat(interarrivalTime)).toFixed(4);
 
                         // Generate service time using exponential distribution
                         let serviceTime = exponentialDistribution(serviceRate);
@@ -152,8 +155,7 @@
                     }
                     tableHtml += "</table>";
 
-                   
-                    console.log("Avg Time Lookup:", Lookupvalues);
+                    console.log("Lookup Values:", Lookupvalues);
                 } else {
                     resultText = "Please enter valid input values (mean > 0, serviceRate > 0).";
                 }
@@ -193,6 +195,19 @@
                 // Round off service time to the nearest integer before returning
                 return Math.round(serviceValue);
             }
+
+            // Function to find the range value in Lookupvalues
+            function findRange(lookup, value) {
+                let keys = Object.keys(lookup);
+                for (let i = 0; i < keys.length; i++) {
+                    if (value <= keys[i]) {
+                    return keys[i];
+                }
+            }
+            
+            // If no matching range is found, return the last key
+            return keys[keys.length - 1];
+}
         });
     </script>
 </body>
