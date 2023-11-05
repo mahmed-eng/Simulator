@@ -89,11 +89,11 @@ th {
         <h1>Simulator</h1>
         <div class="input-container">
             <label for="mean">Mean Value:</label>
-            <input type="number" id="mean" min="0" step="0.01" required>
+            <input type="number" id="mean" min="0.1" step="0.1" required>
         </div>
         <div class="input-container">
             <label for="serviceRate">Service Rate:</label>
-            <input type="number" id="serviceRate" min="0" step="0.01" required>
+            <input type="number" id="serviceRate" min="0.1" step="0.1" required>
         </div>
         <button id="generateBtn">Generate Simulation</button>
         <div id="result"></div>
@@ -136,7 +136,7 @@ th {
                     }
                     tableHtml += "</table>";
                 } else {
-                    resultText = "Please enter valid input values (mean >= 0, serviceRate >= 0).";
+                    resultText = "Please enter valid input values (mean > 0, serviceRate > 0).";
                 }
 
                 document.getElementById("result").innerHTML = resultText;
