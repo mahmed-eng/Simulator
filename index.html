@@ -69,11 +69,8 @@
             margin-top: 10px;
         }
 
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-
         th, td {
+            border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
         }
@@ -108,7 +105,7 @@
                 const mean = parseFloat(document.getElementById("mean").value);
                 const serviceRate = parseFloat(document.getElementById("serviceRate").value);
                 let resultText = "";
-                let tableHtml = "<table><tr><th>S.No.</th><th>Cumulative Frequency</th><th>CP Lookup</th><th>Avg Time Between Arrival</th><th>Interarrival Time</th><th>Arrival Time</th><th>Service Time</th></tr>";
+                let tableHtml = "<table><tr><th>S.No.</th><th>Cumulative Frequency</th><th>CP Lookup</th><th>Avg Time Between Arrival</th><th>Interarrival Time</th><th>Arrival Time</th><th>Service Time</th><th>Start Time</th><th>End Time</th><th>Wait Time</th></tr>";
 
                 let Lookupvalues = {}; // Object to store Avg Time Between Arrival with corresponding CP Lookup
 
@@ -118,42 +115,35 @@
                     let x = 0;
                     let cpLookupPrevious = 0;
                     let interarrivalPrevious = 0;
-                    
+
                     while (cumulativeFrequency.toFixed(5) <= 0.99999) {
-                        // Generate arrival time using poisson distribution
                         const poissonValue = poissonDistribution(mean, x);
-                        
+
                         cumulativeFrequency += poissonValue;
                         const cpLookup = (x === 0) ? 0 : cpLookupPrevious;
                         cpLookupPrevious = cumulativeFrequency.toFixed(4);
-                        
+
                         const avgTimeBetweenArrival = x;
                         Lookupvalues[cpLookup] = avgTimeBetweenArrival;
 
                         totalInterarrivalTime += avgTimeBetweenArrival;
                         let interarrivalTime = Math.random();
 
-                        // Find the range value in Lookupvalues
                         const rangeValue = findRange(Lookupvalues, interarrivalTime);
                         interarrivalTime = Lookupvalues[rangeValue];
 
-                        // Cumulate interarrival into arrival time
                         const arrivalTime = (x === 0) ? 0 : interarrivalPrevious + interarrivalTime;
                         interarrivalPrevious = arrivalTime;
 
-                        // Generate service time using exponential distribution
                         let serviceTime = exponentialDistribution(serviceRate);
 
-                        // Only show service time if it's greater than 0.5
                         if (serviceTime > 0.5) {
-                            // Round off service time to the nearest integer
                             serviceTime = Math.round(serviceTime);
-                            // Existing code for table row generation
-                            tableHtml += `<tr><td>${x + 1}</td><td>${cumulativeFrequency.toFixed(4)}</td><td>${cpLookup}</td><td>${avgTimeBetweenArrival}</td><td>${interarrivalTime}</td><td>${arrivalTime}</td><td>${serviceTime}</td></tr>`;
+                            tableHtml += `<tr><td>${x + 1}</td><td>${cumulativeFrequency.toFixed(4)}</td><td>${cpLookup}</td><td>${avgTimeBetweenArrival}</td><td>${interarrivalTime}</td><td>${arrivalTime}</td><td>${serviceTime}</td><td>${arrivalTime}</td><td>${arrivalTime + serviceTime}</td><td>${arrivalTime - interarrivalPrevious}</td></tr>`;
                         }
 
                         x++;
-                        if(cumulativeFrequency.toFixed(4) == 1.0000)
+                        if (cumulativeFrequency.toFixed(4) == 1.0000)
                             break;
                     }
                     tableHtml += "</table>";
@@ -165,7 +155,6 @@
                 document.getElementById("table-container").innerHTML = tableHtml;
             }
 
-            // Function to calculate arrival using Poisson distribution
             function poissonDistribution(mean, x) {
                 const ePowerMinusMean = Math.exp(-mean);
                 const xPowerX = Math.pow(mean, x);
@@ -174,7 +163,6 @@
                 return (ePowerMinusMean * xPowerX) / factorialX;
             }
 
-            // Function to calculate factorial
             function factorial(n) {
                 if (n === 0) return 1;
                 let result = 1;
@@ -184,31 +172,25 @@
                 return result;
             }
 
-            // Function to calculate service using Exponential distribution
-            function exponentialDistribution(mue){
+            function exponentialDistribution(mue) {
                 let serviceValue = (-mue * Math.log(Math.random())).toFixed(4);
 
-                // If service time is less than or equal to 0.5, generate a new one until it's greater than 0.5
                 while (serviceValue <= 0.5) {
                     serviceValue = (-mue * Math.log(Math.random())).toFixed(4);
                 }
 
-                // Round off service time to the nearest integer before returning
                 return Math.round(serviceValue);
             }
 
-            // Function to find the range value in Lookupvalues
             function findRange(lookup, value) {
                 let keys = Object.keys(lookup);
                 for (let i = 0; i < keys.length; i++) {
                     if (value <= keys[i]) {
-                    return keys[i];
+                        return keys[i];
+                    }
                 }
+                return keys[keys.length - 1];
             }
-            
-            // If no matching range is found, return the last key
-            return keys[keys.length - 1];
-}
         });
     </script>
 </body>
