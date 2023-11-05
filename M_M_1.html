@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,6 +49,7 @@
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
+            margin-right: 10px;
         }
 
         button:hover {
@@ -69,7 +71,8 @@
             margin-top: 10px;
         }
 
-        th, td {
+        th,
+        td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
@@ -79,8 +82,72 @@
             background-color: #007bff;
             color: white;
         }
+
+        /* Gantt chart styles */
+        #ganttChartContainer {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            overflow-x: auto;
+        }
+
+        #ganttChartContainer h2 {
+            margin-bottom: 10px;
+        }
+
+        .gantt-bar {
+            position: relative;
+            background-color: #007bff;
+            margin-right: 2px;
+            color: #fff;
+        }
+
+        .gantt-bar-complete {
+            background-color: #5cb85c;
+            /* Green */
+        }
+
+        .gantt-bar-waiting {
+            background-color: #f0ad4e;
+            /* Orange */
+        }
+
+        .bar-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+        }
+
+        .subscript {
+            font-size: 10px;
+            position: absolute;
+            bottom: -2px;
+        }
+
+        .superscript {
+            font-size: 10px;
+            position: absolute;
+            top: -8px;
+        }
+
+        .process-labels {
+            margin-top: 10px;
+        }
+
+        .process-label {
+            display: inline-block;
+            margin-right: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Simulator</h1>
@@ -95,6 +162,8 @@
         <button id="generateBtn">Generate Simulation</button>
         <div id="result"></div>
         <div id="table-container"></div>
+        <div id="ganttChartContainer"></div>
+        <div class="process-labels" id="processLabels"></div>
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -148,12 +217,95 @@
                             break;
                     }
                     tableHtml += "</table>";
+
+                    // Display the simulation result
+                    document.getElementById("result").innerHTML = resultText;
+                    document.getElementById("table-container").innerHTML = tableHtml;
+
+                    // Generate Gantt Chart
+                    generateGanttChart();
+
+                    // Display process labels
+                    displayProcessLabels(x);
                 } else {
                     resultText = "Please enter valid input values (mean > 0, serviceRate > 0).";
+                    document.getElementById("result").innerHTML = resultText;
+                    document.getElementById("table-container").innerHTML = "";
+                    document.getElementById("ganttChartContainer").innerHTML = "";
+                    document.getElementById("processLabels").innerHTML = "";
                 }
+            }
 
-                document.getElementById("result").innerHTML = resultText;
-                document.getElementById("table-container").innerHTML = tableHtml;
+            function generateGanttChart() {
+                const tableContainer = document.getElementById("table-container");
+                const table = tableContainer.querySelector("table");
+                const ganttChartContainer = document.getElementById("ganttChartContainer");
+                ganttChartContainer.innerHTML = "<h2>Gantt Chart</h2>";
+
+                if (table) {
+                    const rows = table.querySelectorAll("tr");
+                    const tasks = [];
+
+                    for (let i = 1; i < rows.length; i++) {
+                        const cells = rows[i].querySelectorAll("td");
+                        const startTime = parseFloat(cells[7].textContent);
+                        const endTime = parseFloat(cells[8].textContent);
+
+                        tasks.push({ start: startTime, end: endTime, id: `P${i}` });
+                    }
+
+                    tasks.sort((a, b) => a.start - b.start);
+
+                    let currentTime = 0;
+
+                    for (const task of tasks) {
+                        const ganttBar = document.createElement("div");
+                        ganttBar.classList.add("gantt-bar");
+                        ganttBar.style.width = `${(task.end - task.start) * 50}px`; // Adjust the width as needed
+                        ganttBar.textContent = task.id;
+                        ganttBar.title = `Start Time: ${task.start}, End Time: ${task.end}`;
+
+                        const label = document.createElement("div");
+                        label.classList.add("bar-label");
+
+                        const startSubscript = document.createElement("sub");
+                        startSubscript.classList.add("superscript", "hidden");
+                        startSubscript.textContent = task.id.replace(/[^\d.]/g, ''); // Extract numeric part
+                        label.appendChild(startSubscript);
+
+                        label.appendChild(document.createTextNode(` - ${task.end.toFixed(2)}`));
+
+                        const endSubscript = document.createElement("sub");
+                        endSubscript.classList.add("subscript");
+                        endSubscript.textContent = task.end.toFixed(2);
+                        label.appendChild(endSubscript);
+
+                        ganttBar.appendChild(label);
+
+                        if (task.start > currentTime) {
+                            ganttBar.classList.add("gantt-bar-waiting");
+                            ganttBar.title += `\n${task.id} is waiting`;
+                        } else {
+                            ganttBar.classList.add("gantt-bar-complete");
+                            ganttBar.title += `\n${task.id} completes`;
+                        }
+
+                        currentTime = task.end;
+                        ganttChartContainer.appendChild(ganttBar);
+                    }
+                }
+            }
+
+            function displayProcessLabels(processCount) {
+                const processLabelsContainer = document.getElementById("processLabels");
+                processLabelsContainer.innerHTML = "<h2>Process Labels</h2>";
+
+                for (let i = 1; i <= processCount; i++) {
+                    const processLabel = document.createElement("div");
+                    processLabel.classList.add("process-label", "hidden");
+                    processLabel.textContent = `P${i}`;
+                    processLabelsContainer.appendChild(processLabel);
+                }
             }
 
             function poissonDistribution(mean, x) {
@@ -195,4 +347,5 @@
         });
     </script>
 </body>
+
 </html>
