@@ -117,6 +117,7 @@
                     let totalInterarrivalTime = 0;
                     let x = 0;
                     let cpLookupPrevious = 0;
+                    let interarrivalPrevious = 0;
                     
                     while (cumulativeFrequency.toFixed(5) <= 0.99999) {
                         // Generate arrival time using poisson distribution
@@ -136,7 +137,9 @@
                         const rangeValue = findRange(Lookupvalues, interarrivalTime);
                         interarrivalTime = Lookupvalues[rangeValue];
 
-                        const arrivalTime = (x === 0) ? 0 : (parseFloat(tableHtml.split("</td><td>")[5].split("</td></tr>")[0]) + parseFloat(interarrivalTime)).toFixed(4);
+                        // Cumulate interarrival into arrival time
+                        const arrivalTime = (x === 0) ? 0 : interarrivalPrevious + interarrivalTime;
+                        interarrivalPrevious = arrivalTime;
 
                         // Generate service time using exponential distribution
                         let serviceTime = exponentialDistribution(serviceRate);
@@ -154,8 +157,6 @@
                             break;
                     }
                     tableHtml += "</table>";
-
-                    console.log("Lookup Values:", Lookupvalues);
                 } else {
                     resultText = "Please enter valid input values (mean > 0, serviceRate > 0).";
                 }
