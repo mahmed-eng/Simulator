@@ -115,6 +115,7 @@
                     let totalInterarrivalTime = 0;
                     let x = 0;
                     let cpLookupPrevious = 0;
+                    const cpLookupArray = [];
 
                     while (cumulativeFrequency.toFixed(5) <= 0.99999) {
                         // Generate arrival time using poisson distribution
@@ -123,7 +124,8 @@
                         cumulativeFrequency += poissonValue;
                         const cpLookup = (x === 0) ? 0 : cpLookupPrevious;
                         cpLookupPrevious = cumulativeFrequency.toFixed(4);
-                        
+                        cpLookupArray.push(cpLookup);
+
                         const avgTimeBetweenArrival = x;
                         totalInterarrivalTime += avgTimeBetweenArrival;
                         const interarrivalTime = totalInterarrivalTime.toFixed(4);
@@ -139,12 +141,14 @@
                             // Existing code for table row generation
                             tableHtml += `<tr><td>${x + 1}</td><td>${cumulativeFrequency.toFixed(4)}</td><td>${cpLookup}</td><td>${avgTimeBetweenArrival}</td><td>${interarrivalTime}</td><td>${arrivalTime}</td><td>${serviceTime}</td></tr>`;
                         }
-                        
+
                         x++;
                         if(cumulativeFrequency.toFixed(4) == 1.0000)
                             break;
                     }
                     tableHtml += "</table>";
+
+                    console.log("CP Lookup Array:", cpLookupArray);
                 } else {
                     resultText = "Please enter valid input values (mean > 0, serviceRate > 0).";
                 }
