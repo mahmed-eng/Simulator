@@ -110,12 +110,14 @@
                 let resultText = "";
                 let tableHtml = "<table><tr><th>S.No.</th><th>Cumulative Frequency</th><th>CP Lookup</th><th>Avg Time Between Arrival</th><th>Interarrival Time</th><th>Arrival Time</th><th>Service Time</th></tr>";
 
+                let Lookupvalues = {}; // Object to store Avg Time Between Arrival with corresponding CP Lookup
+
                 if (!isNaN(mean) && !isNaN(serviceRate) && mean > 0 && serviceRate > 0) {
                     let cumulativeFrequency = 0.0;
                     let totalInterarrivalTime = 0;
                     let x = 0;
                     let cpLookupPrevious = 0;
-                    const cpLookupArray = [];
+                    
 
                     while (cumulativeFrequency.toFixed(5) <= 0.99999) {
                         // Generate arrival time using poisson distribution
@@ -124,9 +126,11 @@
                         cumulativeFrequency += poissonValue;
                         const cpLookup = (x === 0) ? 0 : cpLookupPrevious;
                         cpLookupPrevious = cumulativeFrequency.toFixed(4);
-                        cpLookupArray.push(cpLookup);
+                        
 
                         const avgTimeBetweenArrival = x;
+                        Lookupvalues[cpLookup] = avgTimeBetweenArrival;
+
                         totalInterarrivalTime += avgTimeBetweenArrival;
                         const interarrivalTime = totalInterarrivalTime.toFixed(4);
                         const arrivalTime = (x === 0) ? interarrivalTime : (parseFloat(tableHtml.split("</td><td>")[5].split("</td></tr>")[0]) + parseFloat(interarrivalTime)).toFixed(4);
@@ -148,7 +152,8 @@
                     }
                     tableHtml += "</table>";
 
-                    console.log("CP Lookup Array:", cpLookupArray);
+                   
+                    console.log("Avg Time Lookup:", Lookupvalues);
                 } else {
                     resultText = "Please enter valid input values (mean > 0, serviceRate > 0).";
                 }
