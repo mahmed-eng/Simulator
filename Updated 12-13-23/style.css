@@ -1,0 +1,143 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  #app {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    max-width: 600px;
+    text-align: center;
+  }
+
+  h1 {
+    color: #333;
+  }
+
+  #inputs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: space-around;
+  }
+
+  label {
+    width: 30%;
+    text-align: right;
+    padding-right: 10px;
+    color: #555;
+  }
+
+  input {
+    width: 60%;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+
+  button {
+    width: 100%;
+    padding: 10px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  button:hover {
+    background-color: #45a049;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  table,
+  th,
+  td {
+    border: 1px solid #ddd;
+  }
+
+  th,
+  td {
+    padding: 8px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #4caf50;
+    color: white;
+  }
+
+  .hide-column {
+    display: none;
+  }
+
+  .server-status {
+    font-weight: bold;
+    color: #f44336;
+  }
+
+  .server-idle {
+      color: #4caf50;
+  }
+
+  .gantt-chart {
+    margin-top: 20px;
+    overflow-x: auto;
+  }
+
+  .gantt-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .gantt-bar {
+    height: 20px;
+    margin-right: 2px;
+    border-radius: 5px;
+  }
+
+  .gantt-wait {
+    background-color: #ffc107; /* Yellow for waiting time */
+  }
+
+  .gantt-busy {
+    background-color: #f44336; /* Red for busy time */
+  }
+
+  .chart-container {
+    margin-top: 20px;
+  }
+
+  .gantt-description {
+    margin-top: 10px;
+    font-size: 14px;
+  }
+
+  .gantt-description-yellow {
+    color: #ffc107;
+  }
+
+  .gantt-description-red {
+    color: #f44336;
+  }
+  
+  #result {
+      margin-top: 20px;
+      font-weight: bold;
+  }

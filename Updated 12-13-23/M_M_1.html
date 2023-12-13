@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .input-container {
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            width: 100px;
+            padding: 5px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        #table-container {
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        /* Gantt chart styles */
+        #ganttChartContainer {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            overflow-x: auto;
+        }
+
+        #ganttChartContainer h2 {
+            margin-bottom: 10px;
+        }
+
+        .gantt-bar {
+            position: relative;
+            background-color: #007bff;
+            margin-right: 2px;
+            color: #fff;
+        }
+
+        .gantt-bar-complete {
+            background-color: #5cb85c;
+            /* Green */
+        }
+
+        .gantt-bar-waiting {
+            background-color: #f0ad4e;
+            /* Orange */
+        }
+
+        .bar-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+        }
+
+        .subscript {
+            font-size: 10px;
+            position: absolute;
+            bottom: -2px;
+        }
+
+        .superscript {
+            font-size: 10px;
+            position: absolute;
+            top: -8px;
+        }
+
+        .process-labels {
+            margin-top: 10px;
+        }
+
+        .process-label {
+            display: inline-block;
+            margin-right: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Simulator</h1>
+        <div class="input-container">
+            <label for="mean">Mean Value:</label>
+            <input type="number" id="mean" min="0.1" step="0.1" required>
+        </div>
+        <div class="input-container">
+            <label for="serviceRate">Service Rate:</label>
+            <input type="number" id="serviceRate" min="0.1" step="0.1" required>
+        </div>
+        <button id="generateBtn">Generate Simulation</button>
+        <div id="result"></div>
+        <div id="table-container"></div>
+        <div id="ganttChartContainer"></div>
+        <div class="process-labels" id="processLabels"></div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const generateBtn = document.getElementById("generateBtn");
+            generateBtn.addEventListener("click", generateSimulation);
+
+            function generateSimulation() {
+                const mean = parseFloat(document.getElementById("mean").value);
+                const serviceRate = parseFloat(document.getElementById("serviceRate").value);
+                let resultText = "";
+                let tableHtml = "<table><tr><th>S.No.</th><th>Cumulative Frequency</th><th>CP Lookup</th><th>Avg Time Between Arrival</th><th>Interarrival Time</th><th>Arrival Time</th><th>Service Time</th><th>Start Time</th><th>End Time</th></tr>";
+
+                let Lookupvalues = {}; // Object to store Avg Time Between Arrival with corresponding CP Lookup
+
+                if (!isNaN(mean) && !isNaN(serviceRate) && mean > 0 && serviceRate > 0) {
+                    let cumulativeFrequency = 0.0;
+                    let totalInterarrivalTime = 0;
+                    let x = 0;
+                    let cpLookupPrevious = 0;
+                    let interarrivalPrevious = 0;
+
+                    while (cumulativeFrequency.toFixed(5) <= 0.99999) {
+                        const poissonValue = poissonDistribution(mean, x);
+
+                        cumulativeFrequency += poissonValue;
+                        const cpLookup = (x === 0) ? 0 : cpLookupPrevious;
+                        cpLookupPrevious = cumulativeFrequency.toFixed(4);
+
+                        const avgTimeBetweenArrival = x;
+                        Lookupvalues[cpLookup] = avgTimeBetweenArrival;
+
+                        totalInterarrivalTime += avgTimeBetweenArrival;
+                        let interarrivalTime = Math.random();
+
+                        const rangeValue = findRange(Lookupvalues, interarrivalTime);
+                        interarrivalTime = Lookupvalues[rangeValue];
+
+                        const arrivalTime = (x === 0) ? 0 : interarrivalPrevious + interarrivalTime;
+                        interarrivalPrevious = arrivalTime;
+
+                        let serviceTime = exponentialDistribution(serviceRate);
+
+                        if (serviceTime > 0.5) {
+                            serviceTime = Math.round(serviceTime);
+                            let endTime = arrivalTime + serviceTime;
+                            tableHtml += `<tr><td>${x + 1}</td><td>${cumulativeFrequency.toFixed(4)}</td><td>${cpLookup}</td><td>${avgTimeBetweenArrival}</td><td>${interarrivalTime}</td><td>${arrivalTime}</td><td>${serviceTime}</td><td>${arrivalTime}</td><td>${endTime}</td></tr>`;
+                        }
+
+                        x++;
+                        if (cumulativeFrequency.toFixed(4) == 1.0000)
+                            break;
+                    }
+                    tableHtml += "</table>";
+
+                    // Display the simulation result
+                    document.getElementById("result").innerHTML = resultText;
+                    document.getElementById("table-container").innerHTML = tableHtml;
+
+                    // Generate Gantt Chart
+                    generateGanttChart();
+
+                    // Display process labels
+                    displayProcessLabels(x);
+                } else {
+                    resultText = "Please enter valid input values (mean > 0, serviceRate > 0).";
+                    document.getElementById("result").innerHTML = resultText;
+                    document.getElementById("table-container").innerHTML = "";
+                    document.getElementById("ganttChartContainer").innerHTML = "";
+                    document.getElementById("processLabels").innerHTML = "";
+                }
+            }
+
+            function generateGanttChart() {
+                const tableContainer = document.getElementById("table-container");
+                const table = tableContainer.querySelector("table");
+                const ganttChartContainer = document.getElementById("ganttChartContainer");
+                ganttChartContainer.innerHTML = "<h2>Gantt Chart</h2>";
+
+                if (table) {
+                    const rows = table.querySelectorAll("tr");
+                    const tasks = [];
+
+                    for (let i = 1; i < rows.length; i++) {
+                        const cells = rows[i].querySelectorAll("td");
+                        const startTime = parseFloat(cells[7].textContent);
+                        const endTime = parseFloat(cells[8].textContent);
+
+                        tasks.push({ start: startTime, end: endTime, id: `P${i}` });
+                    }
+
+                    tasks.sort((a, b) => a.start - b.start);
+
+                    let currentTime = 0;
+
+                    for (const task of tasks) {
+                        const ganttBar = document.createElement("div");
+                        ganttBar.classList.add("gantt-bar");
+                        ganttBar.style.width = `${(task.end - task.start) * 50}px`; // Adjust the width as needed
+                        ganttBar.textContent = task.id;
+                        ganttBar.title = `Start Time: ${task.start}, End Time: ${task.end}`;
+
+                        const label = document.createElement("div");
+                        label.classList.add("bar-label");
+
+                        const startSubscript = document.createElement("sub");
+                        startSubscript.classList.add("superscript", "hidden");
+                        startSubscript.textContent = task.id.replace(/[^\d.]/g, ''); // Extract numeric part
+                        label.appendChild(startSubscript);
+
+                        label.appendChild(document.createTextNode(` - ${task.end.toFixed(2)}`));
+
+                        const endSubscript = document.createElement("sub");
+                        endSubscript.classList.add("subscript");
+                        endSubscript.textContent = task.end.toFixed(2);
+                        label.appendChild(endSubscript);
+
+                        ganttBar.appendChild(label);
+
+                        if (task.start > currentTime) {
+                            ganttBar.classList.add("gantt-bar-waiting");
+                            ganttBar.title += `\n${task.id} is waiting`;
+                        } else {
+                            ganttBar.classList.add("gantt-bar-complete");
+                            ganttBar.title += `\n${task.id} completes`;
+                        }
+
+                        currentTime = task.end;
+                        ganttChartContainer.appendChild(ganttBar);
+                    }
+                }
+            }
+
+            function displayProcessLabels(processCount) {
+                const processLabelsContainer = document.getElementById("processLabels");
+                processLabelsContainer.innerHTML = "<h2>Process Labels</h2>";
+
+                for (let i = 1; i <= processCount; i++) {
+                    const processLabel = document.createElement("div");
+                    processLabel.classList.add("process-label", "hidden");
+                    processLabel.textContent = `P${i}`;
+                    processLabelsContainer.appendChild(processLabel);
+                }
+            }
+
+            function poissonDistribution(mean, x) {
+                const ePowerMinusMean = Math.exp(-mean);
+                const xPowerX = Math.pow(mean, x);
+                const factorialX = factorial(x);
+
+                return (ePowerMinusMean * xPowerX) / factorialX;
+            }
+
+            function factorial(n) {
+                if (n === 0) return 1;
+                let result = 1;
+                for (let i = 1; i <= n; i++) {
+                    result *= i;
+                }
+                return result;
+            }
+
+            function exponentialDistribution(mue) {
+                let serviceValue = (-mue * Math.log(Math.random())).toFixed(4);
+
+                while (serviceValue <= 0.5) {
+                    serviceValue = (-mue * Math.log(Math.random())).toFixed(4);
+                }
+
+                return Math.round(serviceValue);
+            }
+
+            function findRange(lookup, value) {
+                let keys = Object.keys(lookup);
+                for (let i = 0; i < keys.length; i++) {
+                    if (value <= keys[i]) {
+                        return keys[i];
+                    }
+                }
+                return keys[keys.length - 1];
+            }
+        });
+    </script>
+</body>
+
+</html>
