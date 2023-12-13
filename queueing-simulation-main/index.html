@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queue System</title>
+    <link rel="stylesheet" href="style.css">
+    
+</head>
+<body>
+    <main class="main-content">
+        <div class="menue">
+            <h1 class="h1">Queuing System</h1>
+            <div class="choices">
+                <button value="D / D / 1 / K-1" class="btn" id="determ">D / D / 1 / K-1</button>
+                <button value="M / M / 1" class="btn" id="mm1">M / M / 1</button>
+                <button value="M / M / 1 / K" class="btn" id="mm1k">M / M / 1 / K</button>
+                <button value="M / M / C" class="btn" id="mmc">M / M / C</button>
+                <button value="M / M / C / K" class="btn" id="mmck">M / M / C / K</button>
+            </div>
+        </div>
+        <h3 id="type-queue"></h3>
+        <form class="form-content">
+            <label id = "Llamda" for="lamda" class="inputs d-none">Enter arrival time"λ"</label>
+            <input type="text" value=""  required class="inputs inputsf d-none" id="lamda" min="0" placeholder="Enter arrival rate λ.."> 
+
+            <label id="Lmu" for="mu" class="inputs d-none">Enter service time"µ"</label>
+            <input type="text" value=""  required class="inputs inputsf d-none" id="mu" min="0" placeholder="Enter service rate µ..">
+
+            <label id="Lk" for="capacityk" class="inputs d-none">Enter capacity k</label>
+            <input type="number" value="" required class="inputs inputsf d-none" id="capacityk" min="0" placeholder="Enter Capacity K..">
+            
+            <label id="Lm" for="initialm" class="inputs d-none">Enter initial M if found</label>
+            <input type="number" value="" required class="inputs inputsf d-none" id = "initialm" min="0" placeholder="Enter Initial if found M..">
+            
+            <label id="Lt" for="time" class="inputs d-none">Enter time want to Calc</label>
+            <input type="number" value="" required class="inputs inputsf d-none" id = "time" min="0" placeholder="Enter time where to Calc t..">
+            
+            <label id="Ln" for="n" class="inputs d-none">Enter n</label>
+            <input type="number" value="" required class="inputs inputsf d-none" id="n" min="0" placeholder="Enter number of coustome where to Calc n..">
+            
+            <label id="Lc" for="numSystem" class="inputs d-none">Enter number of System</label>
+            <input type="number" value="" required class="inputs inputsf d-none" id="numSystem"  min="0" placeholder="Enter number of System C..">
+        </form>
+        <p id="hint" class="d-none">Waiting Input..</p>
+        <!--test PR-->
+        <p id="nt" class="out d-none">here nt</p>
+        <p id="wn" class="out d-none">here wn</p>
+        <p id="l" class="out d-none">here l</p>
+        <p id="lq" class="out d-none">here lq</p>
+        <p id="w" class="out d-none">here w</p>
+        <p id="wq" class="out d-none">here wq</p>
+
+        <button id="calcdeterm" class="btn btnout d-none">Calc</button>
+        <button id="drawdeterm" class="btn btnout d-none">Draw Chart</button>
+        <button id="calcmm1" class="btn btnout d-none">Calc</button>
+        <button id="calcmm1k" class="btn btnout d-none">Calc</button>
+        <button id="calcmmc" class="btn btnout d-none">Calc</button>
+        <button id="calcmmck" class="btn btnout d-none">Calc</button>
+
+    </main>
+    <div class="chart-container" id = "divChart"  style="position: relative; height:auto; width:99%">
+    <!-- <canvas  id="myChart" class=""></canvas> -->
+    </div>
+    <script src="src/chart.min.js"></script>
+    <script src="src/chart.js"></script>
+    <script src="src/calc.js"></script>
+    <script src="src/methods.js"></script>
+    <script src="src/script.js"></script>
+</body>
+</html>
