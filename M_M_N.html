@@ -263,6 +263,7 @@
         let Lookupvalues = {};
         let Service = [];
         let Arrival = [];
+        let Priority = [];
         let serverData = Array.from({ length: servers }, () => []);
         let Z = Z0;
 
@@ -272,8 +273,8 @@
         table.innerHTML = `
             <tr>
               <th>S.No.</th>
-              <th>Priority</th>
               <th>No. of Patients</th>
+              <th>Priority</th>
               <th>Arrival Time</th>
               <th>Service Time</th>
               ${Array.from({ length: servers }, (_, index) => `
@@ -336,13 +337,17 @@
                 const randomNum = parseFloat(R.toFixed(9));
                 const generatePriority = (((randomNum * (b - a)) + a));
                 const roundOff = Math.round(generatePriority);
+                Priority.push(roundOff);
                 const mTimesRandom = M * randomNum;
-
-                const row = document.createElement('tr');
+                Z = (A * Z + C) % M;
+            }
+            
+            for (let i = 0; i < x; i++) {
+              const row = document.createElement('tr');
                 row.innerHTML = `
                   <td>${i+1}</td>
-                  <td>${roundOff}</td>
                   <td>P${i+1}</td>
+                  <td>${Priority[i]}</td>
                   <td>${Arrival[i]}</td>
                   <td>${Service[i]}</td>
                   ${Array.from({ length: servers }, (_, index) => {
@@ -364,7 +369,6 @@
                 `;
               
                 table.appendChild(row);
-                Z = (A * Z + C) % M;
             }
         
             document.getElementById('simulation-table').appendChild(table);
