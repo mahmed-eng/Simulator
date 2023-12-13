@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Simulator With Gantt Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <h1>Simulator</h1>
+        <div id="inputs">
+            <label for="servers">No. of Server(s):</label>
+            <input type="number" id="servers" min="1" step="1" value="2">
+
+            <label for="arrivalRate">Arrival rate (λ):</label>
+            <input type="number" id="arrivalRate" min="0.1" step="0.1">
+
+            <label for="serviceRate">Service rate (μ):</label>
+            <input type="number" id="serviceRate" min="0.1" step="0.1">
+        </div>
+        <div id="result"></div>
+
+        <button onclick="generateSimulation()">Generate Simulation</button>
+        <span id="counter">No. of Simulation: 0</span> <!-- Counter Display -->
+        <button onclick="resetSimulation()">Reset</button>
+        <div id="simulation-table"></div>
+        <div class="gantt-chart" id="ganttChart"></div>
+        <div class="gantt-description">
+            <span class="gantt-description-yellow">Yellow:</span> Waiting Time
+            <br>
+            <span class="gantt-description-red">Red:</span> Busy Time
+        </div>
+
+        <div class="chart-container" id="chartContainer"></div>
+    </div>
+
+    <script>
+        let simulationCounter = 0;
+
+        function generateGanttChart(serverData) {
+            const ganttChart = document.getElementById('ganttChart');
+            ganttChart.innerHTML = '';
+
+            serverData.forEach((server, index) => {
+                const ganttRow = document.createElement('div');
+                ganttRow.className = 'gantt-row';
+
+                server.forEach((segment) => {
+                    const ganttBar = document.createElement('div');
+                    ganttBar.className = `gantt-bar ${segment.status === 'busy' ? 'gantt-busy' : 'gantt-wait'}`;
+                    ganttBar.style.width = `${segment.duration * 10}px`;
+
+                    ganttRow.appendChild(ganttBar);
+                });
+
+                ganttChart.appendChild(ganttRow);
+            });
+
+            generateBarCharts(serverData);
+        }
+
+        function generateBarCharts(serverData) {
+            const chartContainer = document.getElementById('chartContainer');
+            chartContainer.innerHTML = '';
+
+            serverData.forEach((server, index) => {
+                const canvas = document.createElement('canvas');
+                canvas.id = `chart-${index + 1}`;
+                canvas.width = 300;
+                canvas.height = 100;
+
+                chartContainer.appendChild(canvas);
+
+                const ctx = canvas.getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: server.map((_, i) => `Segment ${i + 1}`),
+                        datasets: [{
+                            label: `Server ${index + 1} Status`,
+                            data: server.map((segment) => segment.duration),
+                            backgroundColor: server.map((segment) => segment.status === 'busy' ? '#f44336' : '#ffc107'),
+                        }],
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                stacked: true,
+                            },
+                            y: {
+                                beginAtZero: true,
+                            },
+                        },
+                    },
+                });
+            });
+        }
+
+        function generateSimulation() {
+            if (document.getElementById('arrivalRate').value != 0 && document.getElementById('serviceRate').value != 0) {
+                simulationCounter++;
+                document.getElementById("counter").innerText = simulationCounter;
+            }
+            const A = 55;
+            const M = 1994;
+            const Z0 = 10112166;
+            const C = 9;
+            const a = 1;
+            const b = 3;
+            const servers = parseInt(document.getElementById('servers').value);
+            const mean = parseFloat(document.getElementById("arrivalRate").value);
+            const serviceRate = parseFloat(document.getElementById("serviceRate").value);
+            let resultText = "";
+            let Lookupvalues = {};
+            let Service = [];
+            let Arrival = [];
+            let serverData = Array.from({ length: servers }, () => []);
+            let Z = Z0;
+
+            document.getElementById('simulation-table').innerHTML = '';
+
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <tr>
+                    <th>S.No.</th>
+                    <th>Priority</th>
+                    <th>No. of Patients</th>
+                    <th>Arrival Time</th>
+                    <th>Service Time</th>
+                    ${Array.from({ length: servers }, (_, index) => `
+                        <th>Server ${index + 1} Start Time</th>
+                        <th>Server ${index + 1} End Time</th>
+                        <th>Server ${index + 1} Status</th>
+                    `).join('')}
+                </tr>
+            `;
+
+            if (!isNaN(mean) && !isNaN(serviceRate) && mean > 0 && serviceRate > 0) {
+                let cumulativeFrequency = 0.0;
+                let totalInterarrivalTime = 0;
+                let x = 0;
+                let cpLookupPrevious = 0;
+                let interarrivalPrevious = 0;
+                let poissonValue = 0;
+                let cpLookup = 0;
+                let avgTimeBetweenArrival = 0;
+                let interarrivalTime = 0;
+                let arrivalTime = 0;
+                let serviceTime = 0;
+                let endTime = 0;
+
+                while (cumulativeFrequency.toFixed(5) <= 0.99999) {
+                    poissonValue = poissonDistribution(mean, x);
+
+                    cumulativeFrequency += poissonValue;
+                    cpLookup = (x === 0) ? 0 : cpLookupPrevious;
+                    cpLookupPrevious = cumulativeFrequency.toFixed(4);
+
+                    avgTimeBetweenArrival = x;
+                    Lookupvalues[cpLookup] = avgTimeBetweenArrival;
+
+                    totalInterarrivalTime += avgTimeBetweenArrival;
+                    interarrivalTime = Math.random();
+
+                    const rangeValue = findRange(Lookupvalues, interarrivalTime);
+                    interarrivalTime = Lookupvalues[rangeValue];
+
+                    arrivalTime = (x === 0) ? 0 : interarrivalPrevious + interarrivalTime;
+                    Arrival.push(arrivalTime);
+                    interarrivalPrevious = arrivalTime;
+
+                    serviceTime = exponentialDistribution(serviceRate);
+
+                    if (serviceTime > 0.5) {
+                        serviceTime = Math.round(serviceTime);
+                        Service.push(serviceTime);
+                        endTime = arrivalTime + serviceTime;
+                    }
+
+                    x++;
+                    if (cumulativeFrequency.toFixed(4) == 1.0000)
+                        break;
+                }
+
+                for (let i = 0; i < x; i++) {
+                    const R = (A * Z + C) % M / M;
+                    const randomNum = parseFloat(R.toFixed(9));
+                    const generatePriority = (((randomNum * (b - a)) + a));
+                    const roundOff = Math.round(generatePriority);
+                    const mTimesRandom = M * randomNum;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${i + 1}</td>
+                        <td>${roundOff}</td>
+                        <td>P${i + 1}</td>
+                        <td>${Arrival[i]}</td>
+                        <td>${Service[i]}</td>
+                        ${Array.from({ length: servers }, (_, index) => {
+                        const startTime = Arrival[i];
+                        const endTime = Arrival[i] + Service[i];
+                        const status = Math.random() < 0.5 ? 'idle' : 'busy';
+
+                        serverData[index].push({
+                            status,
+                            duration: endTime - startTime,
+                        });
+
+                        return `
+                            <td>${startTime}</td>
+                            <td>${endTime}</td>
+                            <td class="${status === 'busy' ? 'server-status' : 'server-idle'}">${status}</td>
+                        `;
+                    }).join('')}
+                    `;
+
+                    table.appendChild(row);
+                    Z = (A * Z + C) % M;
+                }
+
+                document.getElementById('simulation-table').appendChild(table);
+                generateGanttChart(serverData);
+            } else {
+                resultText = "Please enter valid input values (mean > 0, serviceRate > 0).";
+            }
+            document.getElementById("result").innerHTML = resultText;
+
+            function poissonDistribution(mean, x) {
+                const ePowerMinusMean = Math.exp(-mean);
+                const xPowerX = Math.pow(mean, x);
+                const factorialX = factorial(x);
+                return (ePowerMinusMean * xPowerX) / factorialX;
+            }
+
+            function factorial(n) {
+                if (n === 0) return 1;
+                let result = 1;
+                for (let i = 1; i <= n; i++) {
+                    result *= i;
+                }
+                return result;
+            }
+
+            function exponentialDistribution(mue) {
+                let serviceValue = (-mue * Math.log(Math.random())).toFixed(4);
+                while (serviceValue <= 0.5) {
+                    serviceValue = (-mue * Math.log(Math.random())).toFixed(4);
+                }
+                return Math.round(serviceValue);
+            }
+
+            function findRange(lookup, value) {
+                let keys = Object.keys(lookup);
+                for (let i = 0; i < keys.length; i++) {
+                    if (value <= keys[i]) {
+                        return keys[i];
+                    }
+                }
+                return keys[keys.length - 1];
+            }
+        }
+
+        function resetSimulation() {
+            document.getElementById('simulation-table').innerHTML = '';
+            document.getElementById('ganttChart').innerHTML = '';
+            document.getElementById('chartContainer').innerHTML = '';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('servers').value = '';
+            document.getElementById('arrivalRate').value = '';
+            document.getElementById('serviceRate').value = '';
+            simulationCounter = 0;
+            document.getElementById("counter").innerText = simulationCounter;
+        }
+    </script>
+</body>
+
+</html>
